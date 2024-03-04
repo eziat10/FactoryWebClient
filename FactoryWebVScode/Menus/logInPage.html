@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+   
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 300px;
+      margin: 0 auto;
+      margin-top: 100px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Factory Login </h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <input type="submit" value="Login">
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (event) {
+      event.preventDefault(); // Prevent form submission
+  
+      var username = document.getElementById('username').value;
+      var password = document.getElementById('password').value;
+      const users = await getUsers();
+  
+      const user = users.find(user => user.Full_Name === username &&  user.User_Name === password);
+  
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        window.location.href = 'homepage.html';
+      } else {
+        alert('Invalid username or full name. Please try again.');
+      }
+    });
+  
+    async function getUsers() {
+      try {
+        const response = await fetch('https://localhost:44375/api/Users');
+        const dataUsers = await response.json();
+        return dataUsers;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
+  
+</body>
+</html>
+

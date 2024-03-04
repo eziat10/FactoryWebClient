@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Employee Page</title>
+</head>
+<body>
+    <h1>Edit Employee Page</h1>
+    <label id="currentUserDisplay"></label>
+    <button onclick="goToLoginPage()">Log Out</button> <br/><br/>
+
+    <div id="employeeIdContainer"></div>
+
+    <form id="editEmployeeForm">
+
+        <label for="editEmployeeFirstName"> First Name:</label>
+        <input type="text" id="editEmployeeFirstName" required><br/>
+
+        <label for="editEmployeeLastName"> Last Name:</label>
+        <input type="text" id="editEmployeeLastName" required><br/>
+
+        <label for="editEmployeeStartWorkYear">Start Work Year:</label>
+        <input type="text" id="editEmployeeStartWorkYear" required><br/>
+
+        <label for="editEmployeeDepartmentID">Department ID:</label>
+        <select id="editEmployeeDepartmentID" required></select><br/>
+
+        
+
+        <button type="button" onclick="saveChanges()">Save Changes</button><br/>
+    </form>
+
+    <script>
+         document.addEventListener('DOMContentLoaded', function () {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('currentUserDisplay').innerHTML = "Hello:"+ " " + currentUser.Full_Name;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function goToLoginPage() {
+      window.location.href = 'logInPage.html';
+    }
+        //last name/start work year/departmentid
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Get department ID from the URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const employeeId = urlParams.get('employeeId');
+
+            if (employeeId) {
+                // Fetch department details based on department ID
+                try {
+                    const response = await fetch(`https://localhost:44375/api/Employee/${employeeId}`);
+                    const employee = await response.json();
+            
+                    document.getElementById('employeeIdContainer').innerHTML = `Employee ID: ${employeeId}`;
+                    document.getElementById('editEmployeeFirstName').value = employee.First_Name;
+                    document.getElementById('editEmployeeLastName').value = employee.Last_Name;
+                    document.getElementById('editEmployeeStartWorkYear').value = employee.Start_Work_Year;
+
+
+                    //Drop down list for department part
+                    const departmentsResponse = await fetch (`https://localhost:44375/api/Departments`)
+                    const departments = await departmentsResponse.json();
+                    
+                    const departmentDropdown = document.getElementById('editEmployeeDepartmentID');
+                    departments.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department.DepartmentID;
+                    option.text = department.Name;
+                    departmentDropdown.add(option);
+                    });
+
+                    departmentDropdown.value = employee.DepartmentID;
+
+                    
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+            
+        });
+
+        async function saveChanges() {
+            const employeeId = new URLSearchParams(window.location.search).get('employeeId');
+            const editedEmployeeFirstName = document.getElementById('editEmployeeFirstName').value;
+            const editedEmployeeLastName = document.getElementById('editEmployeeLastName').value;
+            const editedEmployeeStartWorkYear = document.getElementById('editEmployeeStartWorkYear').value;
+            const editedEmployeeDepartmentID = document.getElementById('editEmployeeDepartmentID').value;
+            // Check if all the values are not empty
+            if (editedEmployeeFirstName.trim() === "") {
+                alert('Please enter a valid First Name.');
+                return;
+            }
+            if (editedEmployeeLastName.trim() === "") {
+                alert('Please enter a valid Last Name.');
+                return;
+            }
+            if (editedEmployeeStartWorkYear.trim() === "") {
+                alert('Please enter a valid Start Work Year');
+                return;
+            }
+            if (editedEmployeeDepartmentID.trim() === "") {
+                alert('Please enter a valid Department ID.');
+                return;
+            }
+
+            const updatedEmployee = {
+                First_Name : editedEmployeeFirstName,
+                Last_Name : editedEmployeeLastName,
+                Start_Work_Year : editedEmployeeStartWorkYear,
+                DepartmentID : editedEmployeeDepartmentID
+
+            };
+            try {
+
+                const response = await fetch(`https://localhost:44375/api/Employee/${employeeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                 },
+                body: JSON.stringify(updatedEmployee),
+                });
+
+                const result = await response.text();
+                alert(result);
+                window.location.href = 'employeePage.html';
+                
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees Page</title>
+</head>
+<body>
+    <h1>Employees Page</h1>
+    <label id="currentUserDisplay"></label>
+    <button onclick="goToLoginPage()">Log Out</button> <br/>
+
+    <table border= "1" id="employeesTable">
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Start Work Year</th>
+                <th>Department ID</th>
+                <th>Shifts Table...</th>
+                <th>Edit Employee</th>
+                <th>Delete Employee</th>
+                <th>Add Shift</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <a>Searching for an Employee?:</a><br/>
+    <input type="text" id="searchInput" placeholder="Search by first name, last name, or department">
+    <button onclick="SearchEmployeesPage()">Search</button><br/><br/>
+
+    <form id="addEmployeeForm">
+        <a>Please fill in all the fields below to Add a new Employee:</a><br/>
+        <label for="empFirstName">First Name:</label>
+        <input type="text" id="empFirstName" required><br/>
+    
+        <label for="empLastName">Last Name:</label>
+        <input type="text" id="empLastName" required><br/>
+        
+        <label for="empStartWorkYear">Started Working (Year):</label>
+        <input type="text" id="empStartWorkYear" required><br/>
+
+        <label for="empDepartmentID">Department ID:</label>
+        <input type="text" id="empDepartmentID" required><br/>
+
+        <button type="button" onclick="addDepartment()">Add Employee</button>
+    </form>
+   
+    
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('currentUserDisplay').innerHTML = "Hello:"+ " " + currentUser.Full_Name;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+ 
+    function goToLoginPage() {
+      window.location.href = 'logInPage.html';
+    }
+   
+    let originalEmployeeData = [];
+
+    async function getEmployeeWithShifts(){
+        try{
+            const response = await fetch('https://localhost:44375/api/EmployeeWithShifts')
+            originalEmployeeData = await response.json();
+
+            const tbody = document.getElementById('employeesTable').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            originalEmployeeData.forEach(employee => {
+                const row = document.createElement('tr')
+                row.setAttribute('data-id', employee.EmployeeID);
+                row.innerHTML = `<td>${employee.EmployeeID}</td>
+                                <td>${employee.First_Name}</td>
+                                <td>${employee.Last_Name}</td>
+                                <td>${employee.Start_Work_Year}</td>
+                                <td>${employee.DepartmentID}</td>
+                                <td>${getShiftsHTML(employee.Shifts)}</td>
+                                <td><button onclick="editEmployee(${employee.EmployeeID})">Edit</button></td>
+                                <td><button onclick="deleteEmployee(${employee.EmployeeID})">Delete</button></td>
+                                <td><button onclick="AddShift(${employee.EmployeeID})">AddShift</button></td>
+                                `;
+                tbody.appendChild(row);
+            });
+        } catch (error){
+            console.error(error);
+        }
+    }
+
+    function editEmployee(employeeId) {
+    window.location.href = `employeeEditEmployeePage.html?employeeId=${employeeId}`;
+    }
+
+
+    async function deleteEmployee(deleteEmployee) {
+        if (confirm('Are you sure you want to delete this Employee with his shifts??')) {
+            try {
+                const response = await fetch(`https://localhost:44375/api/EmployeeWithShifts/${deleteEmployee}`, {
+                    method: 'DELETE',
+                });
+                const result = await response.text();
+                alert(result);
+                // Remove the row after deleting
+                document.getElementById('employeesTable').querySelector(`tr[data-id="${deleteEmployee}"]`).remove();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    }
+
+    function AddShift(employeeId) {
+    window.location.href = `employeeAddShiftToEmployee.html?employeeId=${employeeId}`;
+    }
+    
+    function getShiftsHTML(shifts) {
+    if (!shifts || shifts.length === 0) {
+        return 'No shifts';
+    }
+
+    let shiftsHTML = '';
+
+    shifts.forEach(shift => {
+        shiftsHTML += `Date: ${shift.date}, Start Time: ${shift.Start_Time}, End Time: ${shift.End_Time}<br/>`;
+    });
+
+    return shiftsHTML;
+}
+
+    function SearchEmployeesPage() {
+        const searchInput = document.getElementById('searchInput').value;
+        window.location.href = `employeeSearchPage.html?searchInput=${searchInput}`;
+    }
+
+    getEmployeeWithShifts();
+</script>
+</html>

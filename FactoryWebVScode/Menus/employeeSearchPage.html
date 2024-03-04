@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees Search</title>
+</head>
+<body>
+    <h1>Search Employee Page</h1>
+    <label id="currentUserDisplay"></label>
+    <button onclick="goToLoginPage()">Log Out</button> <br/><br/>
+
+    <table border="1" id="employeesTable">
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Start Work Year</th>
+                <th>Department ID</th>
+                <th>Shifts Table...</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                document.getElementById('currentUserDisplay').innerHTML = "Hello:" + " " + currentUser.Full_Name;
+            } else {
+                window.location.href = 'login.html';
+            }
+
+            // Capture the searchInput parameter from the URL
+            const searchInput = new URLSearchParams(window.location.search).get('searchInput');
+            await SearchEmployees(searchInput);
+        });
+
+        function goToLoginPage() {
+            window.location.href = 'logInPage.html';
+        }
+
+        let originalEmployeeData = [];
+
+        async function getEmployeeWithShifts() {
+            try {
+                const response = await fetch('https://localhost:44375/api/EmployeeWithShifts');
+                originalEmployeeData = await response.json();
+
+                const tbody = document.getElementById('employeesTable').querySelector('tbody');
+                tbody.innerHTML = '';
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function getShiftsHTML(shifts) {
+            if (!shifts || shifts.length === 0) {
+                return 'No shifts';
+            }
+
+            let shiftsHTML = '';
+
+            shifts.forEach(shift => {
+                shiftsHTML += `Date: ${shift.date}, Start Time: ${shift.Start_Time}, End Time: ${shift.End_Time}<br/>`;
+            });
+
+            return shiftsHTML;
+        }
+
+        // Search for employee by: First_Name, Last_Name, or DepartmentID
+        async function SearchEmployees(searchInput) {
+            await getEmployeeWithShifts();
+
+            //.toLowerCase makes the search easier, it searches in a case-insensitive way
+            //.includes helps to check if the input is present in lowercase
+            const filteredData = originalEmployeeData.filter(employee =>
+                employee.First_Name.toLowerCase().includes(searchInput) ||
+                employee.Last_Name.toLowerCase().includes(searchInput) ||
+                employee.DepartmentID.toString().includes(searchInput)
+            );
+
+            const tbody = document.getElementById('employeesTable').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            filteredData.forEach(employee => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', employee.EmployeeID);
+                row.innerHTML = `<td>${employee.EmployeeID}</td>
+                                <td>${employee.First_Name}</td>
+                                <td>${employee.Last_Name}</td>
+                                <td>${employee.Start_Work_Year}</td>
+                                <td>${employee.DepartmentID}</td>
+                                <td>${getShiftsHTML(employee.Shifts)}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+    </script>
+</body>
+</html>

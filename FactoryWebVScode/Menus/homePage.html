@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homepage</title>
+  <label id="currentUserDisplay"></label><br>
+  <button onclick="goToLoginPage()">Log Out</button>
+
+</head>
+<body>
+  <h2>Welcome to the Homepage</h2>
+  <div>
+    <button onclick="goToDepartments()">Departments</button>
+    <button onclick="goToEmployees()">Employees</button>
+    <button onclick="goToShifts()">Shifts</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Retrieve user information from local storage/Display
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('currentUserDisplay').innerHTML = "Hello:"+ " " + currentUser.Full_Name;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function goToDepartments() {
+      window.location.href = 'depPage.html';
+    }
+
+    function goToEmployees() {
+      window.location.href = 'employeePage.html';
+    }
+
+    function goToShifts() {
+      window.location.href = 'shiftPage.html';
+    }
+
+    function goToLoginPage() {
+      window.location.href = 'logInPage.html';
+    }
+
+  </script>
+</body>
+</html>

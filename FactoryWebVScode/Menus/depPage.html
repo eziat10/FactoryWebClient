@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department PAGE</title>
+    
+</head>
+<body>
+    <h1>Departments Page </h1>
+    <label id="currentUserDisplay"></label><br/>
+    <button onclick="goToLoginPage()">Log Out</button> <br/>
+
+<table border="1" id="departmentTable">
+    <thead>
+        <tr>
+            <th>Department ID</th>
+            <th>Department Name</th>
+            <th>Manager ID</th>
+            <th>Edit Department</th>
+            <th>Delete Department</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- all department data will be shown here//Dep dummmmmy -->
+    </tbody>
+</table>
+    <button type="button" onclick="addDepartmentPage()">Go to Add Department Page</button><br/>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('currentUserDisplay').innerHTML = "Hello:"+ " " + currentUser.Full_Name;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function goToLoginPage() {
+      window.location.href = 'logInPage.html';
+    }
+
+    async function getDepartments() {
+        try {
+            const response = await fetch('https://localhost:44375/api/Departments'); 
+            const data = await response.json();
+
+            // Clear existing data
+            document.getElementById('departmentTable').querySelector('tbody').innerHTML = '';
+        
+            data.forEach(department => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', department.DepartmentID); //how to indentify what user of the table im going to edit (on the same row)
+                row.innerHTML = `<td>${department.DepartmentID}</td>
+                                <td>${department.Name}</td>
+                                <td>${department.ManagerID}</td>
+                                <td><button onclick="editDepartment(${department.DepartmentID})">Edit</button></td>
+                                <td><button onclick="deleteDepartment(${department.DepartmentID})">Delete</button></td>`;
+                document.getElementById('departmentTable').querySelector('tbody').appendChild(row);
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    function addDepartmentPage() {
+    window.location.href = `depAddDepartment.html`;
+    }
+
+    function editDepartment(departmentId) {
+    window.location.href = `edit_department.html?departmentId=${departmentId}`;
+    }
+
+
+let allEmployees = []; // Array to store all employees
+
+async function deleteDepartment(departmentId) {
+    console.log('Deleting department:', departmentId);
+
+    const hasEmployees = await checkIfEmployeeHasDep(departmentId);
+    console.log('Has employees:', hasEmployees);
+
+    if (hasEmployees) {
+        alert("You can't delete a department with employees.");
+        return;
+    }
+
+    if (confirm('Are you sure you want to delete this department?')) {
+        try {
+            const response = await fetch(`https://localhost:44375/api/Departments/${departmentId}`, {
+                method: 'DELETE',
+            });
+            const result = await response.text();
+            console.log('Delete result:', result);
+
+            // Removes the row after deleting!!
+            const rowToRemove = document.getElementById('departmentTable').querySelector(`tr[data-id="${departmentId}"]`);
+            console.log('Row to remove:', rowToRemove);
+            if (rowToRemove) {
+                rowToRemove.remove();
+                console.log('Row removed successfully.');
+            } else {
+                console.log('Row not found in the table.');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+        }
+    }
+}
+
+async function getAllEmployees() {
+    try {
+        const response = await fetch('https://localhost:44375/api/Employee');
+        allEmployees = await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function checkIfEmployeeHasDep(departmentId) {
+    try {
+        // Check if there are employees with the same DepartmentID in the stored array (allEmployees)
+        return allEmployees.some(employee => employee.DepartmentID === departmentId);
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+}
+
+
+
+
+    getAllEmployees();
+    getDepartments();
+    
+</script>
+
+</body>
+</html>

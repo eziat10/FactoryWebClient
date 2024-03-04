@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADD SHIFT PAGE</title>
+</head>
+<body>
+    <h1>ADD SHIFT PAGE</h1>
+    <label id="currentUserDisplay"></label><br/>
+    <button onclick="goToLoginPage()">Log Out</button> <br/>
+
+    <form id="addShiftForm">
+        <a>Please fill in all the fields below to Add a new Shift:</a><br/>
+        <label for="shiftDate">Shift Date:</label>
+        <input type="text" id="shiftDate" required><br/>
+
+        <label for="shiftStartTime">Shift Start Time:</label>
+        <input type="text" id="shiftStartTime" required><br/>
+
+        <label for="shiftEndTime">Shift End Time:</label>
+        <input type="text" id="shiftEndTime" required><br/>
+
+        <button type="button" onclick="addShift()">Add New Shift</button><br/>
+    </form>
+
+    <script>
+         document.addEventListener('DOMContentLoaded', function () {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('currentUserDisplay').innerHTML = "Hello:"+ " " + currentUser.Full_Name;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function goToLoginPage() {
+      window.location.href = 'logInPage.html';
+    }
+
+    async function addShift() {
+            const shiftDate = document.getElementById('shiftDate').value;
+            const shiftStartTime = document.getElementById('shiftStartTime').value;
+            const shiftEndTime = document.getElementById('shiftEndTime').value;
+
+            // Check if data is not empty
+            if (shiftDate.trim() === "" || shiftStartTime.trim() === "" || shiftEndTime.trim() === "") {
+                alert('Please enter valid data for all fields');
+                return;
+            }
+
+            const newShift = {
+                date: shiftDate,
+                Start_Time: shiftStartTime,
+                End_Time: shiftEndTime,
+            };
+
+            try {
+                const response = await fetch('https://localhost:44375/api/Shifts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newShift),
+                });
+
+                const result = await response.text();
+                alert(result);
+                
+                // Refresh table
+            } catch (error) {
+                console.error(error);
+            }
+            goShiftsPage();
+        }
+
+        function goShiftsPage(){
+            window.location.href = 'shiftPage.html';
+        }
+
+    
+    </script>
+
+</body>
+</html>
